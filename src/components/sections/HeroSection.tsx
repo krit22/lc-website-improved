@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Pencil, Check, X } from 'lucide-react';
 import { db } from '../../firebase';
@@ -27,6 +27,11 @@ export function HeroSection() {
 
     const canEdit = user !== null && user.admin === true;
 
+    // Parallax scrolling effect
+    const { scrollY } = useScroll();
+    const y = useTransform(scrollY, [0, 500], [0, 150]);
+    const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+
     useEffect(() => {
         fetchContent();
     }, []);
@@ -43,15 +48,18 @@ export function HeroSection() {
                     tagline: data.tagline || defaultContent.tagline,
                     lastEditedBy: data.lastEditedBy,
                 });
+            } else {
+                setContent(defaultContent);
             }
         } catch (error) {
-            console.error('Error fetching hero content:', error);
+            console.error('Error fetching hero content, using defaults:', error);
+            setContent(defaultContent);
         }
     };
 
     const handleEdit = (field: keyof HeroContent) => {
         setEditField(field);
-        setEditValue(content[field] || '');
+        setEditValue(content[field] as string);
     };
 
     const handleSave = async () => {
@@ -62,16 +70,21 @@ export function HeroSection() {
 
         setIsSaving(true);
         try {
+            const editorName = user?.name || user?.userId || 'unknown';
             const newContent = {
                 ...content,
                 [editField]: editValue.trim(),
-                lastEditedBy: user?.name || user?.userId || 'Unknown'
+                lastEditedBy: editorName,
             };
-            await setDoc(doc(db, 'SiteContent', 'hero'), newContent);
+
+            const docRef = doc(db, 'SiteContent', 'hero');
+            await setDoc(docRef, newContent);
+
             setContent(newContent);
             setEditField(null);
         } catch (error) {
-            console.error('Failed to save:', error);
+            console.error('Error saving content:', error);
+            alert('Failed to save changes');
         } finally {
             setIsSaving(false);
         }
@@ -83,69 +96,72 @@ export function HeroSection() {
     };
 
     const renderEditableText = (field: keyof HeroContent, text: string, className: string) => {
+        if (!canEdit) {
+            return <span className={className}>{text}</span>;
+        }
+
         if (editField === field) {
             return (
-                <div className="relative inline-block w-full">
+                <div className="inline-flex items-center gap-2">
                     <input
                         type="text"
                         value={editValue}
-                        onChange={e => setEditValue(e.target.value)}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="px-3 py-2 bg-white/90 text-gray-900 rounded border-2 border-primary-500 focus:outline-none focus:border-primary-700"
                         autoFocus
-                        className={`bg-white/20 backdrop-blur-sm border-2 border-primary-400 rounded-lg px-4 py-2 outline-none focus:border-primary-300 text-center w-full ${className}`}
-                        disabled={isSaving}
-                        onKeyDown={e => {
-                            if (e.key === 'Escape') handleCancel();
+                        onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSave();
+                            if (e.key === 'Escape') handleCancel();
                         }}
                     />
-                    <div className="flex gap-2 mt-2 justify-center">
-                        <button
-                            onClick={handleCancel}
-                            disabled={isSaving}
-                            className="p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full transition-colors"
-                        >
-                            <X size={16} />
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="p-2 bg-green-500/80 hover:bg-green-600 text-white rounded-full transition-colors"
-                        >
-                            <Check size={16} />
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                    >
+                        <Check size={20} />
+                    </button>
+                    <button
+                        onClick={handleCancel}
+                        className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
             );
         }
 
         return (
-            <span className="relative group inline-block">
+            <span className={`${className} group relative`}>
                 {text}
-                {canEdit && (
-                    <button
-                        onClick={() => handleEdit(field)}
-                        className="absolute -top-2 -right-8 p-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100"
-                        title="Edit"
-                    >
-                        <Pencil size={12} />
-                    </button>
-                )}
+                <button
+                    onClick={() => handleEdit(field)}
+                    className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white/20 rounded hover:bg-white/30"
+                >
+                    <Pencil size={16} />
+                </button>
             </span>
         );
     };
 
     return (
         <header className="relative min-h-screen flex items-center justify-center overflow-hidden">
-            <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{
-                    backgroundImage: `url('images/slider/a8.jpg')`,
-                }}
+            <motion.div
+                className="absolute inset-0"
+                style={{ y }}
             >
-                <div className="absolute inset-0 bg-black/40" />
-            </div>
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: `url('images/slider/a8.jpg')`,
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/60 via-primary-900/50 to-black/70 mix-blend-multiply" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
+            </motion.div>
 
-            <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+            <motion.div className="relative z-10 text-center px-4 max-w-5xl mx-auto" style={{ opacity }}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -154,28 +170,28 @@ export function HeroSection() {
                 >
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-cormorant text-white leading-tight">
                         <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 1, delay: 0.5 }}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
                             className="block"
                         >
                             {renderEditableText('line1', content.line1, 'text-5xl md:text-7xl lg:text-8xl font-cormorant text-white')}
                         </motion.span>
                         <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 1, delay: 1 }}
-                            className="block text-primary-300 italic"
+                            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+                            className="block text-gold-400 italic mt-4 drop-shadow-2xl"
                         >
-                            {renderEditableText('line2', content.line2, 'text-5xl md:text-7xl lg:text-8xl font-cormorant text-primary-300 italic')}
+                            {renderEditableText('line2', content.line2, 'text-5xl md:text-7xl lg:text-8xl font-cormorant text-gold-400 italic')}
                         </motion.span>
                     </h1>
 
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 1, delay: 1.5 }}
-                        className="text-xl md:text-2xl font-spectral text-gray-200 mt-8"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+                        className="text-xl md:text-2xl font-spectral text-gray-100 mt-8 drop-shadow-lg"
                     >
                         {renderEditableText('tagline', content.tagline, 'text-xl md:text-2xl font-spectral text-gray-200')}
                     </motion.div>
@@ -194,18 +210,18 @@ export function HeroSection() {
                     className="absolute bottom-10 left-1/2 -translate-x-1/2"
                 >
                     <motion.div
-                        animate={{ y: [0, 10, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-2"
+                        animate={{ y: [0, 10, 0], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="w-7 h-11 border-2 border-white/60 rounded-full flex items-start justify-center p-2 backdrop-blur-sm bg-white/5"
                     >
                         <motion.div
-                            animate={{ y: [0, 12, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                            className="w-1.5 h-1.5 bg-white rounded-full"
+                            animate={{ y: [0, 14, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                            className="w-1.5 h-1.5 bg-white rounded-full shadow-lg shadow-white/50"
                         />
                     </motion.div>
                 </motion.div>
-            </div>
+            </motion.div>
         </header>
     );
 }

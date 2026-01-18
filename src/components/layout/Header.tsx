@@ -113,9 +113,9 @@ export function Header() {
     return (
         <>
             <nav
-                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl z-50 transition-all duration-300 rounded-2xl ${isScrolled
-                    ? 'bg-white/95 backdrop-blur-md shadow-lg'
-                    : 'bg-white/80 backdrop-blur-sm'
+                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl z-50 transition-all duration-300 rounded-2xl border ${isScrolled
+                        ? 'bg-white/80 backdrop-blur-lg shadow-xl border-primary-100/50'
+                        : 'bg-black/20 backdrop-blur-md border-white/20'
                     }`}
             >
                 <div className="px-6 py-3">
