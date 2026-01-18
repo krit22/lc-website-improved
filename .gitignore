@@ -23,6 +23,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Exclude large image files for GitHub
-public/images/
