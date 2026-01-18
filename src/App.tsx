@@ -15,7 +15,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <HashRouter>
+      <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auditions" element={<AuditionsPage />} />
@@ -23,7 +23,7 @@ function App() {
           <Route path="/members" element={<MembersDashboardPage />} />
           <Route path="/alumni" element={<AlumniPage />} />
         </Routes>
-      </HashRouter>
+      </Router>
     </AuthProvider>
   );
 }
