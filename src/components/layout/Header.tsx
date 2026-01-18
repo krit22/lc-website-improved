@@ -144,24 +144,26 @@ export function Header() {
                                 ))}
                                 <li>
                                     <a
-                                        href="#/auditions"
-                                        className="font-spectral text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                                        href="/auditions"
+                                        className="font-spectral text-gray-700 hover:text-primary-700 transition-colors duration-200 relative group"
                                     >
                                         Auditions
+                                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-gold-600 group-hover:w-full transition-all duration-300 ease-out"></span>
                                     </a>
                                 </li>
                                 <li>
                                     <a
-                                        href="#/dejavu"
-                                        className="font-spectral text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                                        href="/dejavu"
+                                        className="font-spectral text-gray-700 hover:text-primary-700 transition-colors duration-200 relative group"
                                     >
                                         Déjà Vu
+                                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-gold-600 group-hover:w-full transition-all duration-300 ease-out"></span>
                                     </a>
                                 </li>
                                 <li>
                                     <a
-                                        href="#/alumni"
-                                        className="font-spectral text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                                        href="/alumni"
+                                        className="font-spectral text-gray-700 hover:text-primary-700 transition-colors duration-200 relative group"
                                     >
                                         Alumni
                                     </a>

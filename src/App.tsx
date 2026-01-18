@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context';
-import { HomePage, AuditionsPage, MembersDashboardPage, DejaVuPage, AlumniPage } from './pages';
+import { HomePage } from './pages/HomePage';
+import { AuditionsPage } from './pages/AuditionsPage';
+import { DejaVuPage } from './pages/DejaVuPage';
+import { MembersDashboardPage } from './pages/MembersDashboardPage';
+import { AlumniPage } from './pages/AlumniPage';
 import { migrateTeamMembersToFirestore } from './firebase/migrateTeam';
 
 function App() {
